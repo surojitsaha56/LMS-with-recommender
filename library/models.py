@@ -6,8 +6,10 @@ from datetime import datetime,timedelta
 
 class StudentExtra(models.Model):
     user=models.OneToOneField(User,on_delete=models.CASCADE)
+    fullname = models.CharField(max_length=40)
     enrollment = models.CharField(max_length=40)
     branch = models.CharField(max_length=40)
+
     #used in issue book
     def __str__(self):
         return self.user.first_name+'['+str(self.enrollment)+']'
@@ -17,6 +19,8 @@ class StudentExtra(models.Model):
     @property
     def getuserid(self):
         return self.user.id
+
+    
 
 
 class Book(models.Model):

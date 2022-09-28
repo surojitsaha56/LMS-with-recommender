@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from . import forms,models
 from django.http import HttpResponseRedirect
@@ -8,6 +8,10 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
 from django.core.mail import send_mail
 from librarymanagement.settings import EMAIL_HOST_USER
+
+import xlwt
+import datetime
+from django.contrib.auth.models import User
 
 
 def home_view(request):
@@ -62,8 +66,10 @@ def studentsignup_view(request):
             user.set_password(user.password)
             user.save()
             f2=form2.save(commit=False)
+            print('StudentExtra created')
             f2.user=user
-            user2=f2.save()
+            f2.save()
+            print('Student Extra final saved')
 
             my_student_group = Group.objects.get_or_create(name='STUDENT')
             my_student_group[0].user_set.add(user)
@@ -199,3 +205,68 @@ def contactus_view(request):
             send_mail(str(name)+' || '+str(email),message, EMAIL_HOST_USER, ['wapka1503@gmail.com'], fail_silently = False)
             return render(request, 'library/contactussuccess.html')
     return render(request, 'library/contactus.html', {'form':sub})
+
+@login_required(login_url='studentlogin')
+def searchBook_view(request):
+    if request.method == "POST":
+        query_name = request.POST.get('name', None)
+        if query_name:
+            results = models.Book.objects.filter(name__contains=query_name)
+            return render(request, 'library/search.html', {"results":results})
+
+    # return render(request, 'product-search.html')
+
+def exportExcelBook(request):
+    response=HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition']='attachment; filename=Books'+ \
+        str(datetime.datetime.now())+'.xls'
+    wb=xlwt.Workbook(encoding='utf-8')
+    ws=wb.add_sheet('Books')
+    row_num=0
+    font_style=xlwt.XFStyle()
+    font_style.font.bold=True
+    columns=['Book Name', 'ISBN', 'Author', 'Category']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style=xlwt.XFStyle()
+
+    rows=models.Book.objects.all().values_list('name', 'isbn', 'author', 'category')
+
+    for row in rows:
+        row_num+=1
+
+        for col_num in range(len(row)):
+            ws.write(row_num, col_num, str(row[col_num]), font_style)
+    wb.save(response)
+
+    return response
+
+
+def exportExcelStudents(request):
+    response=HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition']='attachment; filename=Students'+ \
+        str(datetime.datetime.now())+'.xls'
+    wb=xlwt.Workbook(encoding='utf-8')
+    ws=wb.add_sheet('Students')
+    row_num=0
+    font_style=xlwt.XFStyle()
+    font_style.font.bold=True
+    columns=['Full Name', 'Enrollment', 'Branch']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style=xlwt.XFStyle()
+
+    rows1=models.StudentExtra.objects.all().values_list('fullname', 'enrollment', 'branch')
+
+    for row in rows1:
+        row_num+=1
+
+        for col_num in range(len(row)):
+            ws.write(row_num, col_num, str(row[col_num]), font_style)
+    wb.save(response)
+
+    return response

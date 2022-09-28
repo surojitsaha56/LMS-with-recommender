@@ -61,6 +61,16 @@ border-radius: 5px;
     {% include "library/navbaradmin.html" %}
     <br>
     <br>
+    <div>
+      <form action="{% url 'exportexcelstudents' %}">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="text" name="name" class="form-control" />
+          <input type="submit" name="submit" value="Import Excel Sheet" class="btn btn-primary">
+          </button>
+        </div>
+    </form>
+  </div>
     <h3 class="p-3 mb-2 bg-primary text-white" style = 'font-size: 50px;text-align:center;'>Student registered in Library !</h3>
 
     {% if students%}
