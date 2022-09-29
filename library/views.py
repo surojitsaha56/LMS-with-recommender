@@ -1,3 +1,4 @@
+from sre_constants import SUCCESS
 from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from . import forms,models
@@ -8,7 +9,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
 from django.core.mail import send_mail
 from librarymanagement.settings import EMAIL_HOST_USER
-
+from django.contrib import messages
 import xlwt
 import datetime
 from django.contrib.auth.models import User
@@ -299,3 +300,54 @@ def exportExcelStudents(request):
     wb.save(response)
 
     return response
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@login_required(login_url='adminlogin')
+@user_passes_test(is_admin)
+def returnBook(request):
+    form=forms.ReturnBookForm()
+
+    if request.method=='POST':
+        studentid2=request.POST.get('enrollment3')
+        bookid2=request.POST.get('isbn3')
+
+        if models.IssuedBook.objects.filter(enrollment=studentid2).exists() and models.IssuedBook.objects.filter(isbn=bookid2).exists():
+
+            form=forms.ReturnBookForm(request.POST)
+            if form.is_valid():
+
+                tuple2delete=models.IssuedBook.objects.get(enrollment=studentid2, isbn=bookid2)
+                #delete entry from issuetable
+                tuple2delete.delete()
+                messages.success(request, 'Book returned')
+    context={'form': form}
+    return render(request, 'library/returnbook.html', context)
+
+
