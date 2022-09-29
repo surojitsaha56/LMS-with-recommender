@@ -53,5 +53,8 @@ urlpatterns = [
     path('search', views.searchBook_view, name = 'search'),
     path('exportexcelbook', views.exportExcelBook, name='exportexcelbook'),
     path('exportexcelstudents', views.exportExcelStudents, name='exportexcelstudents'),
+    
+    path('returnbook',views.returnBook),
+
 
 ]
