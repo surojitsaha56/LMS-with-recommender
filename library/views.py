@@ -12,6 +12,8 @@ from librarymanagement.settings import EMAIL_HOST_USER
 import xlwt
 import datetime
 from django.contrib.auth.models import User
+from sms import send_sms
+from twilio.rest import Client
 
 
 def home_view(request):
@@ -124,6 +126,33 @@ def issuebook_view(request):
             obj.enrollment=request.POST.get('enrollment2')
             obj.isbn=request.POST.get('isbn2')
             obj.save()
+            bookname = models.Book.objects.filter(isbn = obj.isbn)[0]
+            print(bookname)
+            expiry_date = date.today() + timedelta(days=15)
+    
+            #send an sms regarding book has been issued
+            # send_sms(
+            #     'You have issued' + str(bookname) + 'Expiry date is: ' + str(expiry_date),
+            #     '+919769893813',
+            #     ['+919892665947'],
+            #     fail_silently=False
+            # )
+
+            # Find your Account SID and Auth Token at twilio.com/console
+            # and set the environment variables. See http://twil.io/secure
+            account_sid = 'ACf20faa5a715fb6c29837bb4fb1657c01'
+            auth_token = 'd403d3fe39358a36ffbde920daa8dcd3'
+            client = Client(account_sid, auth_token)
+
+            message = client.messages \
+                            .create(
+                                body='You have issued' + str(bookname) + 'Expiry date is: ' + str(expiry_date),
+                                from_='+17472985342',
+                                to='+919769893813'
+                            )
+
+            print(message.sid)
+
             return render(request,'library/bookissued.html')
     return render(request,'library/issuebook.html',{'form':form})
 
@@ -138,7 +167,7 @@ def viewissuedbook_view(request):
         expdate=str(ib.expirydate.day)+'-'+str(ib.expirydate.month)+'-'+str(ib.expirydate.year)
         #fine calculation
         days=(date.today()-ib.issuedate)
-        print(date.today())
+        # print(date.today())
         d=days.days
         fine=0
         if d>15:
