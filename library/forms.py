@@ -30,7 +30,7 @@ class StudentExtraForm(forms.ModelForm):
 class BookForm(forms.ModelForm):
     class Meta:
         model=models.Book
-        fields=['name','isbn','author','category']
+        fields=['name','isbn','author','category','rating']
 class IssuedBookForm(forms.Form):
     #to_field_name value will be stored when form is submitted.....__str__ method of book model will be shown there in html
     isbn2=forms.ModelChoiceField(queryset=models.Book.objects.all(),empty_label="Name and isbn", to_field_name="isbn",label='Name and Isbn')
@@ -39,3 +39,5 @@ class IssuedBookForm(forms.Form):
 class ReturnBookForm(forms.Form):
         isbn3=forms.CharField()
         enrollment3=forms.CharField()
+        rating=forms.IntegerField()
+

@@ -77,11 +77,12 @@ border-radius: 5px;
 <th>ISBN</th>
 <th>Author</th>
 <th>Category</th>
+<th>Rating</th>
 </tr>
 </thead>
 <tfoot>
 <tr>
-<td colspan="4" rowspan="4">
+<td colspan="5" rowspan="5">
 <div class="links"></div>
 </td>
 </tr>
@@ -93,6 +94,7 @@ border-radius: 5px;
       <td>{{book.isbn}}</td>
       <td>{{book.author}}</td>
       <td>{{book.category}}</td>
+      <td>{{book.rating}}</td>
     </tr>
   {% endfor %}
 </tbody>

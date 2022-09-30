@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 from sre_constants import SUCCESS
 from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
@@ -308,6 +309,14 @@ def returnBook(request):
     if request.method=='POST':
         studentid2=request.POST.get('enrollment3')
         bookid2=request.POST.get('isbn3')
+        ratings=request.POST.get('rating')
+        r1=int(models.Book.objects.get(isbn=bookid2).rating)
+        print(r1)
+        r=(((int(ratings)+r1)//2)%10)
+        print("HI",ratings)
+        book=models.Book.objects.filter(isbn=bookid2).update(rating=r)
+        
+        print(book)
 
         if models.IssuedBook.objects.filter(enrollment=studentid2).exists() and models.IssuedBook.objects.filter(isbn=bookid2).exists():
 
