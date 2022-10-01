@@ -125,7 +125,11 @@ def issuebook_view(request):
             obj=models.IssuedBook()
             obj.enrollment=request.POST.get('enrollment2')
             obj.isbn=request.POST.get('isbn2')
-            obj.save()
+            if models.IssuedBook.objects.filter(isbn=obj.isbn).exists():
+                   messages.success(request, 'Please enter details correctly')
+            else:
+                messages.success(request, 'Issued Book')
+                obj.save()
             return render(request,'library/bookissued.html')
     return render(request,'library/issuebook.html',{'form':form})
 
@@ -178,6 +182,9 @@ def viewissuedbookbystudent(request):
         for book in books:
             t=(request.user,student[0].enrollment,student[0].branch,book.name,book.author)
             li1.append(t)
+            
+        print(li1)
+    
         issdate=str(ib.issuedate.day)+'-'+str(ib.issuedate.month)+'-'+str(ib.issuedate.year)
         expdate=str(ib.expirydate.day)+'-'+str(ib.expirydate.month)+'-'+str(ib.expirydate.year)
         #fine calculation
@@ -311,9 +318,8 @@ def returnBook(request):
         bookid2=request.POST.get('isbn3')
         ratings=request.POST.get('rating')
         r1=int(models.Book.objects.get(isbn=bookid2).rating)
-        print(r1)
         r=(((int(ratings)+r1)//2)%10)
-        print("HI",ratings)
+    
         book=models.Book.objects.filter(isbn=bookid2).update(rating=r)
         
         print(book)
