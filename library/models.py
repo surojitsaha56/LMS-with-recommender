@@ -9,10 +9,9 @@ class StudentExtra(models.Model):
     fullname = models.CharField(max_length=40)
     enrollment = models.CharField(max_length=40)
     branch = models.CharField(max_length=40)
+    phone = models.CharField(max_length=10)
 
     #used in issue book
-    def __str__(self):
-        return self.user.first_name+'['+str(self.enrollment)+']'
     @property
     def get_name(self):
         return self.user.first_name
