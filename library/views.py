@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 from sre_constants import SUCCESS
 from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
@@ -13,7 +14,6 @@ from django.contrib import messages
 import xlwt
 import datetime
 from django.contrib.auth.models import User
-from sms import send_sms
 from twilio.rest import Client
 
 
@@ -125,36 +125,40 @@ def issuebook_view(request):
         if form.is_valid():
             obj=models.IssuedBook()
             obj.enrollment=request.POST.get('enrollment2')
+            print(request.POST.get('enrollment2'))
             obj.isbn=request.POST.get('isbn2')
-            obj.save()
-            bookname = models.Book.objects.filter(isbn = obj.isbn)[0]
-            print(bookname)
-            expiry_date = date.today() + timedelta(days=15)
-    
-            #send an sms regarding book has been issued
-            # send_sms(
-            #     'You have issued' + str(bookname) + 'Expiry date is: ' + str(expiry_date),
-            #     '+919769893813',
-            #     ['+919892665947'],
-            #     fail_silently=False
-            # )
 
-            # Find your Account SID and Auth Token at twilio.com/console
-            # and set the environment variables. See http://twil.io/secure
-            account_sid = 'ACf20faa5a715fb6c29837bb4fb1657c01'
-            auth_token = 'd403d3fe39358a36ffbde920daa8dcd3'
-            client = Client(account_sid, auth_token)
+            if models.IssuedBook.objects.filter(isbn=obj.isbn).exists():
+                   messages.success(request, 'Please enter details correctly')
+            else:
+                student = models.StudentExtra.objects.filter(enrollment=request.POST.get('enrollment2'))[0]
+                bookname = models.Book.objects.filter(isbn = obj.isbn)[0]
+                expiry_date = date.today() + timedelta(days=15)
+                phone = '+91'+student.phone
+                print(phone)
+            
+                account_sid = '#'
+                auth_token = '#'
+                client = Client(account_sid, auth_token)
 
-            message = client.messages \
-                            .create(
-                                body='You have issued' + str(bookname) + 'Expiry date is: ' + str(expiry_date),
-                                from_='+17472985342',
-                                to='+919769893813'
-                            )
+                message = client.messages \
+                                .create(
+                                        body='You have issued' + str(bookname) + 'Expiry date is: ' + str(expiry_date),
+                                        from_='+17472985342',
+                                        to=phone
+                                    )
 
-            print(message.sid)
+                print(message.sid)
+                messages.success(request, 'Issued Book')
+                obj.save()
+
+                
+
+                    
 
             return render(request,'library/bookissued.html')
+
+           
     return render(request,'library/issuebook.html',{'form':form})
 
 
@@ -206,6 +210,9 @@ def viewissuedbookbystudent(request):
         for book in books:
             t=(request.user,student[0].enrollment,student[0].branch,book.name,book.author)
             li1.append(t)
+            
+        print(li1)
+    
         issdate=str(ib.issuedate.day)+'-'+str(ib.issuedate.month)+'-'+str(ib.issuedate.year)
         expdate=str(ib.expirydate.day)+'-'+str(ib.expirydate.month)+'-'+str(ib.expirydate.year)
         #fine calculation
@@ -337,6 +344,13 @@ def returnBook(request):
     if request.method=='POST':
         studentid2=request.POST.get('enrollment3')
         bookid2=request.POST.get('isbn3')
+        ratings=request.POST.get('rating')
+        r1=int(models.Book.objects.get(isbn=bookid2).rating)
+        r=(((int(ratings)+r1)//2)%10)
+    
+        book=models.Book.objects.filter(isbn=bookid2).update(rating=r)
+        
+        print(book)
 
         if models.IssuedBook.objects.filter(enrollment=studentid2).exists() and models.IssuedBook.objects.filter(isbn=bookid2).exists():
 

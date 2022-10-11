@@ -35,6 +35,7 @@ class Book(models.Model):
     isbn=models.PositiveIntegerField()
     author=models.CharField(max_length=40)
     category=models.CharField(max_length=30,choices=catchoice,default='education')
+    rating=models.PositiveIntegerField()
     def __str__(self):
         return str(self.name)+"["+str(self.isbn)+']'
 
