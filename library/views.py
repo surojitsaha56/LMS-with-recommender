@@ -136,6 +136,9 @@ def issuebook_view(request):
                 expiry_date = date.today() + timedelta(days=15)
                 phone = '+91'+student.phone
                 print(phone)
+                bookcount = models.Book.objects.filter(isbn=obj.isbn)[0].count
+                bookcount -= 1
+                book = models.Book.objects.filter(isbn=obj.isbn).update(count = bookcount)
             
                 account_sid = '#'
                 auth_token = '#'
@@ -308,6 +311,20 @@ def exportExcelStudents(request):
 
     return response
 
+def recommenderSystem(bookname):
+    print('in')
+    booknamelist = bookname.split(' ')
+    results = []
+    for word in booknamelist:
+        books = models.Book.objects.filter(name__contains=word)
+        books = list(books)
+        for book in books:
+            print(book)
+            if book.name not in results and book.name != bookname:
+                results.append(book.name)
+    return results
+
+
 
 
 
@@ -350,7 +367,7 @@ def returnBook(request):
     
         book=models.Book.objects.filter(isbn=bookid2).update(rating=r)
         
-        print(book)
+        # print(book)
 
         if models.IssuedBook.objects.filter(enrollment=studentid2).exists() and models.IssuedBook.objects.filter(isbn=bookid2).exists():
 
@@ -358,8 +375,36 @@ def returnBook(request):
             if form.is_valid():
 
                 tuple2delete=models.IssuedBook.objects.get(enrollment=studentid2, isbn=bookid2)
+                bookname=models.Book.objects.filter(isbn=bookid2)[0]
+                bookcount = models.Book.objects.filter(isbn=bookid2)[0].count
+                bookcount += 1
+                models.Book.objects.filter(isbn=bookid2).update(count = bookcount)
+                print('start')
+                recommended_books = recommenderSystem(bookname.name)
+                print(str(recommended_books))
+
+
                 #delete entry from issuetable
                 tuple2delete.delete()
+
+                student = models.StudentExtra.objects.filter(enrollment = studentid2)[0]
+                bookname = models.Book.objects.filter(isbn = bookid2)[0]
+                phone = '+91'+student.phone
+                print(phone)
+            
+                account_sid = '#'
+                auth_token = '#'
+                client = Client(account_sid, auth_token)
+
+                message = client.messages \
+                                .create(
+                                        body='Recommended books:' + str(recommended_books),
+                                        from_='+17472985342',
+                                        to=phone
+                                    )
+
+                print(message.sid)
+
                 messages.success(request, 'Book returned')
     context={'form': form}
     return render(request, 'library/returnbook.html', context)

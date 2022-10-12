@@ -30,7 +30,8 @@ class StudentExtraForm(forms.ModelForm):
 class BookForm(forms.ModelForm):
     class Meta:
         model=models.Book
-        fields=['name','isbn','author','category','rating']
+        fields=['name','isbn','author','category','rating','count']
+
 class IssuedBookForm(forms.Form):
         isbn2=forms.CharField()
         enrollment2=forms.CharField()

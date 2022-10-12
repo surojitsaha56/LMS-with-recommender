@@ -136,3 +136,5 @@ EMAIL_HOST_PASSWORD = 'lyuvqgmjxphewzdg'
 
 # for sms
 SMS_BACKEND = 'sms.backends.console.SmsBackend'
+
+
