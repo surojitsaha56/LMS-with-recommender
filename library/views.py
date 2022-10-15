@@ -15,6 +15,7 @@ import xlwt
 import datetime
 from django.contrib.auth.models import User
 from twilio.rest import Client
+from decouple import config
 
 
 def home_view(request):
@@ -128,20 +129,29 @@ def issuebook_view(request):
             print(request.POST.get('enrollment2'))
             obj.isbn=request.POST.get('isbn2')
 
-            if models.IssuedBook.objects.filter(isbn=obj.isbn).exists():
-                   messages.success(request, 'Please enter details correctly')
+            bookcount = models.Book.objects.filter(isbn=obj.isbn)[0].count
+
+            # if models.IssuedBook.objects.filter(isbn=obj.isbn).exists():
+            #     print('bruh')
+            #     messages.success(request, 'Please enter details correctly')
+
+            if bookcount == 0:
+                print('Hi')
+                messages.info(request, 'Book not availabe')
+                return render(request,'library/issuebook.html',{'form':form})
+
             else:
                 student = models.StudentExtra.objects.filter(enrollment=request.POST.get('enrollment2'))[0]
                 bookname = models.Book.objects.filter(isbn = obj.isbn)[0]
                 expiry_date = date.today() + timedelta(days=15)
                 phone = '+91'+student.phone
                 print(phone)
-                bookcount = models.Book.objects.filter(isbn=obj.isbn)[0].count
+                
                 bookcount -= 1
                 book = models.Book.objects.filter(isbn=obj.isbn).update(count = bookcount)
             
-                account_sid = '#'
-                auth_token = '#'
+                account_sid = config('account_sid')
+                auth_token = config('auth_token')
                 client = Client(account_sid, auth_token)
 
                 message = client.messages \
@@ -376,9 +386,12 @@ def returnBook(request):
 
                 tuple2delete=models.IssuedBook.objects.get(enrollment=studentid2, isbn=bookid2)
                 bookname=models.Book.objects.filter(isbn=bookid2)[0]
+
+                # Updating the count of the book while returning
                 bookcount = models.Book.objects.filter(isbn=bookid2)[0].count
                 bookcount += 1
                 models.Book.objects.filter(isbn=bookid2).update(count = bookcount)
+
                 print('start')
                 recommended_books = recommenderSystem(bookname.name)
                 print(str(recommended_books))
@@ -392,8 +405,8 @@ def returnBook(request):
                 phone = '+91'+student.phone
                 print(phone)
             
-                account_sid = '#'
-                auth_token = '#'
+                account_sid = config('account_sid')
+                auth_token = config('auth_token')
                 client = Client(account_sid, auth_token)
 
                 message = client.messages \

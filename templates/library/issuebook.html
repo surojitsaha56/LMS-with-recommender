@@ -120,7 +120,9 @@
     			<div class="col-xs-8 col-xs-offset-4">
             <button type="submit" class="btn btn-primary btn-lg">ISSUE</button>
     			</div>
-				<p> {{message}}</p>
+				{% for message in messages %}
+            		<h3><p id="messages">{{message}}</p></h3>
+            	{%endfor%}
     		</div>
         </form>
     	<div class="text-center">View Issued Book to Student  <a href="viewissuedbook">Click here</a></div>
