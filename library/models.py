@@ -10,7 +10,7 @@ class StudentExtra(models.Model):
     enrollment = models.CharField(max_length=40)
     branch = models.CharField(max_length=40)
     phone = models.CharField(max_length=10)
-    books_issued_count = models.IntegerField()
+    books_issued_count = models.IntegerField(default = 0)
 
     #used in issue book
     @property

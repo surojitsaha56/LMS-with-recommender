@@ -126,10 +126,16 @@ def issuebook_view(request):
         if form.is_valid():
             obj=models.IssuedBook()
             obj.enrollment=request.POST.get('enrollment2')
-            print(request.POST.get('enrollment2'))
+            # print(request.POST.get('enrollment2'))
             obj.isbn=request.POST.get('isbn2')
 
             bookcount = models.Book.objects.filter(isbn=obj.isbn)[0].count
+
+            # check how many books has the student issued already
+            books_issued_count = models.StudentExtra.objects.filter(enrollment = obj.enrollment)[0].books_issued_count
+
+            # print(books_issued_count)
+
 
             # if models.IssuedBook.objects.filter(isbn=obj.isbn).exists():
             #     print('bruh')
@@ -140,15 +146,26 @@ def issuebook_view(request):
                 messages.info(request, 'Book not availabe')
                 return render(request,'library/issuebook.html',{'form':form})
 
+            elif books_issued_count == 2:
+                print('Limit exceeded')
+                messages.info(request, 'Cant issue more than 2 books')
+                return render(request,'library/issuebook.html',{'form':form})
+
             else:
                 student = models.StudentExtra.objects.filter(enrollment=request.POST.get('enrollment2'))[0]
                 bookname = models.Book.objects.filter(isbn = obj.isbn)[0]
                 expiry_date = date.today() + timedelta(days=15)
                 phone = '+91'+student.phone
-                print(phone)
+                # print(phone)
                 
+                # decreasing the book count in library
                 bookcount -= 1
                 book = models.Book.objects.filter(isbn=obj.isbn).update(count = bookcount)
+
+                # increasing the limit of students who can issue book
+                books_issued_count += 1
+                # print(books_issued_count)
+                models.StudentExtra.objects.filter(enrollment = obj.enrollment).update(books_issued_count = books_issued_count)
             
                 account_sid = config('account_sid')
                 auth_token = config('auth_token')
@@ -161,15 +178,15 @@ def issuebook_view(request):
                                         to=phone
                                     )
 
-                print(message.sid)
-                messages.success(request, 'Issued Book')
+                # print(message.sid)
+                messages.success(request, 'Book Issued Successfully')
                 obj.save()
 
                 
 
                     
 
-            return render(request,'library/bookissued.html')
+            return render(request,'library/issuebook.html')
 
            
     return render(request,'library/issuebook.html',{'form':form})
@@ -392,6 +409,14 @@ def returnBook(request):
                 bookcount += 1
                 models.Book.objects.filter(isbn=bookid2).update(count = bookcount)
 
+                # check how many books has the student issued already
+                books_issued_count = models.StudentExtra.objects.filter(enrollment = studentid2)[0].books_issued_count
+
+                # decreasing the limit of student who can issue book
+                books_issued_count -= 1
+                # print(books_issued_count)
+                models.StudentExtra.objects.filter(enrollment = studentid2).update(books_issued_count = books_issued_count)
+
                 print('start')
                 recommended_books = recommenderSystem(bookname.name)
                 print(str(recommended_books))
@@ -419,6 +444,7 @@ def returnBook(request):
                 print(message.sid)
 
                 messages.success(request, 'Book returned')
+                return render(request, 'library/returnbook.html', {'form': form})
     context={'form': form}
     return render(request, 'library/returnbook.html', context)
 
