@@ -1,28 +1,23 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
+    <script>
+      
+    </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Student Login</title>
+    <title>Return Book</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
 
 
-
-
-
-
-
-
-
-    <style type="text/css">
+    <!-- <style type="text/css">
     	body {
     		color: #aa082e;
-    			background-color:#b6bde7;
+    		background: #c5acb0;
     		font-family: 'Roboto', sans-serif;
     	}
         .form-control {
@@ -93,7 +88,7 @@
     	.signup-form form a:hover {
     		text-decoration: underline;
     	}
-    </style>
+    </style> -->
 
 
 
@@ -101,17 +96,17 @@
 
 
   </head>
-  <body>
-    {% include "library/navbar.html" %}
+  <body style="background-color:#b6bde7;">
+    {% include "library/navbaradmin.html" %}
     <br>
     <br>
-<center><h3 style=" margin-bottom: 0px;"class = 'alert alert-success'>Login As Student!</h3></center>
-    <div class="signup-form">
-        <form  method="post" class="form-horizontal">
-
-    			<center><h2>Student Login</h2></center>
-
-{% csrf_token %}
+<center><h3 style=" margin-bottom: 0px;"class = 'alert alert-success'>RETURN BOOK TO STUDENT !</h3></center>
+<div>
+    <div class="container">
+        <div class ="returnbook">
+        <form method="POST" action="">
+            {% csrf_token %}
+           
             {% for field in form %}
             <div class="form-group">
               <label class="control-label col-xs-4">{{ field.label_tag }}</label>
@@ -120,18 +115,11 @@
                </div>
             </div>
             {% endfor %}
-
-    		<div class="form-group">
-    			<div class="col-xs-8 col-xs-offset-4">
-            <button type="submit" class="btn btn-primary btn-lg">Login</button>
-    			</div>
-    		</div>
-        </form>
-    	<div class="text-center">Do not have account? <a href="studentsignup">Signup here</a></div>
-    </div>
-
-
-
+            <input type="submit" name="Add" onclick = "myfunction()">
+               
+            </div>
+            </div>
+           
     {% include "library/footer.html" %}
   </body>
 </html>

@@ -16,8 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.conf.urls import include
 from django.urls import path
-from library import views
+from library import views, search
 from django.contrib.auth.views import LoginView,LogoutView
+
+
 
 
 
@@ -47,5 +49,12 @@ urlpatterns = [
 
     path('aboutus', views.aboutus_view),
     path('contactus', views.contactus_view),
+
+    path('search', views.searchBook_view, name = 'search'),
+    path('exportexcelbook', views.exportExcelBook, name='exportexcelbook'),
+    path('exportexcelstudents', views.exportExcelStudents, name='exportexcelstudents'),
+    
+    path('returnbook',views.returnBook),
+
 
 ]

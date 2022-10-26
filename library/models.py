@@ -6,17 +6,20 @@ from datetime import datetime,timedelta
 
 class StudentExtra(models.Model):
     user=models.OneToOneField(User,on_delete=models.CASCADE)
+    fullname = models.CharField(max_length=40)
     enrollment = models.CharField(max_length=40)
     branch = models.CharField(max_length=40)
+    phone = models.CharField(max_length=10)
+
     #used in issue book
-    def __str__(self):
-        return self.user.first_name+'['+str(self.enrollment)+']'
     @property
     def get_name(self):
         return self.user.first_name
     @property
     def getuserid(self):
         return self.user.id
+
+    
 
 
 class Book(models.Model):
@@ -31,6 +34,8 @@ class Book(models.Model):
     isbn=models.PositiveIntegerField()
     author=models.CharField(max_length=40)
     category=models.CharField(max_length=30,choices=catchoice,default='education')
+    rating=models.PositiveIntegerField()
+    count =models.PositiveIntegerField()
     def __str__(self):
         return str(self.name)+"["+str(self.isbn)+']'
 

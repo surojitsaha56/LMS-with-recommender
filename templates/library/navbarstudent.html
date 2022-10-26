@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Bootstrap 4 Static Navbar with Dropdown and Search Form</title>
+<title>LMS</title>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -54,7 +54,17 @@
 
             </div>
 
-            <div class="navbar-nav">
+            <!-- Search bar-->
+
+            <form action="{% url 'search' %}" method = "POST">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" name="name" class="form-control" />
+                  <input type="submit" name="submit" value="Search" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+            </form>
                 <a href="logout" class="nav-item nav-link">LOGOUT</a> &nbsp
                 <a href="/aboutus" class="nav-item nav-link">About Us</a>
                 <a href="contactus" class="nav-item nav-link">Contact Us</a>

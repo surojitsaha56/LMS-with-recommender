@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from multiprocessing.sharedctypes import Value
+from sre_constants import SUCCESS
+from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from . import forms,models
 from django.http import HttpResponseRedirect
@@ -8,6 +10,11 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
 from django.core.mail import send_mail
 from librarymanagement.settings import EMAIL_HOST_USER
+from django.contrib import messages
+import xlwt
+import datetime
+from django.contrib.auth.models import User
+from twilio.rest import Client
 
 
 def home_view(request):
@@ -62,8 +69,10 @@ def studentsignup_view(request):
             user.set_password(user.password)
             user.save()
             f2=form2.save(commit=False)
+            print('StudentExtra created')
             f2.user=user
-            user2=f2.save()
+            f2.save()
+            print('Student Extra final saved')
 
             my_student_group = Group.objects.get_or_create(name='STUDENT')
             my_student_group[0].user_set.add(user)
@@ -116,9 +125,43 @@ def issuebook_view(request):
         if form.is_valid():
             obj=models.IssuedBook()
             obj.enrollment=request.POST.get('enrollment2')
+            print(request.POST.get('enrollment2'))
             obj.isbn=request.POST.get('isbn2')
-            obj.save()
+
+            if models.IssuedBook.objects.filter(isbn=obj.isbn).exists():
+                   messages.success(request, 'Please enter details correctly')
+            else:
+                student = models.StudentExtra.objects.filter(enrollment=request.POST.get('enrollment2'))[0]
+                bookname = models.Book.objects.filter(isbn = obj.isbn)[0]
+                expiry_date = date.today() + timedelta(days=15)
+                phone = '+91'+student.phone
+                print(phone)
+                bookcount = models.Book.objects.filter(isbn=obj.isbn)[0].count
+                bookcount -= 1
+                book = models.Book.objects.filter(isbn=obj.isbn).update(count = bookcount)
+            
+                account_sid = '#'
+                auth_token = '#'
+                client = Client(account_sid, auth_token)
+
+                message = client.messages \
+                                .create(
+                                        body='You have issued' + str(bookname) + 'Expiry date is: ' + str(expiry_date),
+                                        from_='+17472985342',
+                                        to=phone
+                                    )
+
+                print(message.sid)
+                messages.success(request, 'Issued Book')
+                obj.save()
+
+                
+
+                    
+
             return render(request,'library/bookissued.html')
+
+           
     return render(request,'library/issuebook.html',{'form':form})
 
 
@@ -132,7 +175,7 @@ def viewissuedbook_view(request):
         expdate=str(ib.expirydate.day)+'-'+str(ib.expirydate.month)+'-'+str(ib.expirydate.year)
         #fine calculation
         days=(date.today()-ib.issuedate)
-        print(date.today())
+        # print(date.today())
         d=days.days
         fine=0
         if d>15:
@@ -170,6 +213,9 @@ def viewissuedbookbystudent(request):
         for book in books:
             t=(request.user,student[0].enrollment,student[0].branch,book.name,book.author)
             li1.append(t)
+            
+        print(li1)
+    
         issdate=str(ib.issuedate.day)+'-'+str(ib.issuedate.month)+'-'+str(ib.issuedate.year)
         expdate=str(ib.expirydate.day)+'-'+str(ib.expirydate.month)+'-'+str(ib.expirydate.year)
         #fine calculation
@@ -199,3 +245,168 @@ def contactus_view(request):
             send_mail(str(name)+' || '+str(email),message, EMAIL_HOST_USER, ['wapka1503@gmail.com'], fail_silently = False)
             return render(request, 'library/contactussuccess.html')
     return render(request, 'library/contactus.html', {'form':sub})
+
+@login_required(login_url='studentlogin')
+def searchBook_view(request):
+    if request.method == "POST":
+        query_name = request.POST.get('name', None)
+        if query_name:
+            results = models.Book.objects.filter(name__contains=query_name)
+            return render(request, 'library/search.html', {"results":results})
+
+    # return render(request, 'product-search.html')
+
+def exportExcelBook(request):
+    response=HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition']='attachment; filename=Books'+ \
+        str(datetime.datetime.now())+'.xls'
+    wb=xlwt.Workbook(encoding='utf-8')
+    ws=wb.add_sheet('Books')
+    row_num=0
+    font_style=xlwt.XFStyle()
+    font_style.font.bold=True
+    columns=['Book Name', 'ISBN', 'Author', 'Category']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style=xlwt.XFStyle()
+
+    rows=models.Book.objects.all().values_list('name', 'isbn', 'author', 'category')
+
+    for row in rows:
+        row_num+=1
+
+        for col_num in range(len(row)):
+            ws.write(row_num, col_num, str(row[col_num]), font_style)
+    wb.save(response)
+
+    return response
+
+
+def exportExcelStudents(request):
+    response=HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition']='attachment; filename=Students'+ \
+        str(datetime.datetime.now())+'.xls'
+    wb=xlwt.Workbook(encoding='utf-8')
+    ws=wb.add_sheet('Students')
+    row_num=0
+    font_style=xlwt.XFStyle()
+    font_style.font.bold=True
+    columns=['Full Name', 'Enrollment', 'Branch']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style=xlwt.XFStyle()
+
+    rows1=models.StudentExtra.objects.all().values_list('fullname', 'enrollment', 'branch')
+
+    for row in rows1:
+        row_num+=1
+
+        for col_num in range(len(row)):
+            ws.write(row_num, col_num, str(row[col_num]), font_style)
+    wb.save(response)
+
+    return response
+
+def recommenderSystem(bookname):
+    print('in')
+    booknamelist = bookname.split(' ')
+    results = []
+    for word in booknamelist:
+        books = models.Book.objects.filter(name__contains=word)
+        books = list(books)
+        for book in books:
+            print(book)
+            if book.name not in results and book.name != bookname:
+                results.append(book.name)
+    return results
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@login_required(login_url='adminlogin')
+@user_passes_test(is_admin)
+def returnBook(request):
+    form=forms.ReturnBookForm()
+
+    if request.method=='POST':
+        studentid2=request.POST.get('enrollment3')
+        bookid2=request.POST.get('isbn3')
+        ratings=request.POST.get('rating')
+        r1=int(models.Book.objects.get(isbn=bookid2).rating)
+        r=(((int(ratings)+r1)//2)%10)
+    
+        book=models.Book.objects.filter(isbn=bookid2).update(rating=r)
+        
+        # print(book)
+
+        if models.IssuedBook.objects.filter(enrollment=studentid2).exists() and models.IssuedBook.objects.filter(isbn=bookid2).exists():
+
+            form=forms.ReturnBookForm(request.POST)
+            if form.is_valid():
+
+                tuple2delete=models.IssuedBook.objects.get(enrollment=studentid2, isbn=bookid2)
+                bookname=models.Book.objects.filter(isbn=bookid2)[0]
+                bookcount = models.Book.objects.filter(isbn=bookid2)[0].count
+                bookcount += 1
+                models.Book.objects.filter(isbn=bookid2).update(count = bookcount)
+                print('start')
+                recommended_books = recommenderSystem(bookname.name)
+                print(str(recommended_books))
+
+
+                #delete entry from issuetable
+                tuple2delete.delete()
+
+                student = models.StudentExtra.objects.filter(enrollment = studentid2)[0]
+                bookname = models.Book.objects.filter(isbn = bookid2)[0]
+                phone = '+91'+student.phone
+                print(phone)
+            
+                account_sid = '#'
+                auth_token = '#'
+                client = Client(account_sid, auth_token)
+
+                message = client.messages \
+                                .create(
+                                        body='Recommended books:' + str(recommended_books),
+                                        from_='+17472985342',
+                                        to=phone
+                                    )
+
+                print(message.sid)
+
+                messages.success(request, 'Book returned')
+    context={'form': form}
+    return render(request, 'library/returnbook.html', context)
+
+

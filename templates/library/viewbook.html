@@ -58,6 +58,16 @@ border-radius: 5px;
     {% include "library/navbaradmin.html" %}
     <br>
     <br>
+    <div>
+      <form action="{% url 'exportexcelbook' %}">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="text" name="name" class="form-control" />
+          <input type="submit" name="submit" value="Import Excel Sheet" class="btn btn-primary">
+          </button>
+        </div>
+    </form>
+    </div>
     <h3 class="p-3 mb-2 bg-primary text-white" style = 'font-size: 50px;text-align:center;'>Available Book in Library !</h3>
 {% if books%}
 <table class="redTable">
@@ -67,11 +77,13 @@ border-radius: 5px;
 <th>ISBN</th>
 <th>Author</th>
 <th>Category</th>
+<th>Rating</th>
+<th>Count</th>
 </tr>
 </thead>
 <tfoot>
 <tr>
-<td colspan="4" rowspan="4">
+<td colspan="5" rowspan="5">
 <div class="links"></div>
 </td>
 </tr>
@@ -83,6 +95,8 @@ border-radius: 5px;
       <td>{{book.isbn}}</td>
       <td>{{book.author}}</td>
       <td>{{book.category}}</td>
+      <td>{{book.rating}}</td>
+      <td>{{book.count}}</td>
     </tr>
   {% endfor %}
 </tbody>
