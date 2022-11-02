@@ -9,10 +9,9 @@ class StudentExtra(models.Model):
     fullname = models.CharField(max_length=40)
     enrollment = models.CharField(max_length=40)
     branch = models.CharField(max_length=40)
+    phone = models.CharField(max_length=10)
 
     #used in issue book
-    def __str__(self):
-        return self.user.first_name+'['+str(self.enrollment)+']'
     @property
     def get_name(self):
         return self.user.first_name
@@ -36,6 +35,7 @@ class Book(models.Model):
     author=models.CharField(max_length=40)
     category=models.CharField(max_length=30,choices=catchoice,default='education')
     rating=models.PositiveIntegerField()
+    count =models.PositiveIntegerField()
     def __str__(self):
         return str(self.name)+"["+str(self.isbn)+']'
 
