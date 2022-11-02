@@ -1,6 +1,9 @@
-<h1>Books result</h1>
+{% include "library/navbaradmin.html" %}
+<br><br><br>
+<h1 style="text-align: center;">Books result</h1>
+
 {% for result in results %}
 
-    <p>{{result.name}}</p>
+    <p style="text-align: center; color: #0062CC; font-size: 25px; border-style: solid; border-color: black;  width: 100px; margin-left: 45%;">{{result.name}}</p>
 
 {%endfor%}
